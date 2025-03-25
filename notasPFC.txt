@@ -1,0 +1,18 @@
+Notas PFC
+- IDEASPACE
+- Pagina dark mode / light mode [Configuracion]
+- Paleta de colores: https://coolors.co/acadbc-9b9ece-6665dd-473bf0-000500
+- Navbar: height: 10%
+
+lucide-react //iconos 
+react-router-dom //navegación sin recarga de pagina
+
+tabler.io/icons
+radix-ui.com/icons
+
+svgl.app //empresas
+
+=============
+Server: npx nodemon server.js
+Client: npm run dev
+=============
