@@ -7,7 +7,7 @@ import path from "path";
 import { configDotenv } from "dotenv";
 
 import { database } from './database/databaseConnect.js';
-import { addUser } from './model/newUser.js';
+import { verifyInputs, addUser } from "./model/users.js";
 
 // Obtener el directorio actual (para módulos ES)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -37,24 +37,34 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/signup', (req, res) => {
-    const data = req.body;
-
-    const name = data.name;
-    const username = data.username;
-    const email = data.email;
-    const password = data.password;
-    const birthdate = data.date;
-    const signup_date = new Date().toISOString().slice(0, 19).replace("T", " ");
-
-    addUser(database, name, username, birthdate, email, password, signup_date, (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ message: "There was an error adding the user...", error: err });
+    try {
+        const errors = verifyInputs(form.username, form.email, form.password, form.date, form.name);
+        if (errors.length > 0) {
+            res.status(400).send({ message: "Error en los campos", errors });
+            return;
         }
 
-        res.status(201).json({ message: "User registered successfully", id: result.insertId });
-        console.log("User registered successfully");
-    })
+        const data = req.body;
+
+        const name = data.name;
+        const username = data.username;
+        const email = data.email;
+        const password = data.password;
+        const birthdate = data.date;
+        const signup_date = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+        addUser(database, name, username, birthdate, email, password, signup_date, (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: "There was an error adding the user...", error: err });
+            }
+
+            res.status(201).json({ message: "User registered successfully", id: result.insertId });
+            console.log("User registered successfully");
+        })
+    } catch (error) {
+        res.status(400).json({ error });
+    }
 })
 
 // ========================

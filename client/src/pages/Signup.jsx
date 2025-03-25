@@ -7,6 +7,7 @@ import { Pen } from 'lucide-react';
 
 export function Signup() {
     const [eye, setEye] = useState(false);
+    const [error, setError] = useState([]);
 
     const [form, setForm] = useState({
         username: '',
@@ -31,11 +32,19 @@ export function Signup() {
                 }
                 return response.json();
             })
-            .then((data) => console.log(data.message))
-            .catch(err => console.error(err));
+            .then(data => console.log(data.message))
+            .catch(err => {
+                console.error(err.message);
+                if (err.errors) {
+                    setError(err.errors);
+                } else {
+                    setError(["Ocurrió un error en el servidor."]);
+                }
+            });
     }
 
     function handleChange(e) {
+
         setForm(prevForm => ({
             ...prevForm, [e.target.name]: e.target.value
         }));
@@ -87,6 +96,17 @@ export function Signup() {
                     </div>
                 </div>
             </section>
+
+            {
+                error &&
+                <div className="text-red-500 flex justify-center">
+                    <ul>
+                        {error.map((error => {
+                            return <li key={error}>{error}</li>;
+                        }))}
+                    </ul>
+                </div>
+            }
         </>
     )
 }

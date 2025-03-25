@@ -28,6 +28,7 @@ export function Login() {
         <section className="flex justify-center items-center h-138">
             <div className="w-100 h-100 p-12 bg-white shadow-2xl rounded-lg ">
                 <form onSubmit={handleForm} className="flex items-center flex-col gap-4">
+                    <h1 className="text-3xl">Log in</h1>
                     <label htmlFor="username" aria-label="username"></label>
                     <input type="text" name="username" placeholder="username" className="w-50 focus:bg-gray-100 border-1 rounded-md p-1"
                         value={form.username}
