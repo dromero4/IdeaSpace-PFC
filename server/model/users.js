@@ -17,11 +17,18 @@ export function verifyInputs(name, username, password1, password2, email, date) 
     const errors = [];
     const dateNow = new Date();
 
+    if (name == '' || username == '' || password1 == '' || password2 == '' || email == '' || date == '') errors.push('The inputs can not be empty');
+
     if (typeof name !== 'string') errors.push('Name must be a string');
     if (name.length < 1 || name.length > 50) errors.push('Name must be between 1 and 50 characters');
     if (username.length < 1 || username.length > 50) errors.push('Username must be between 1 and 50 characters');
-    if (!/^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password1)) errors.push('Password must have at least 6 characters, an uppercase and a number');
-    if (password1 !== password2) errors.push('Password must coincide')
+    if (!password1 || !password2) {
+        errors.push('Passwords cannot be empty');
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(password1)) {
+        errors.push('Password must have at least 8 characters, one lowercase, one uppercase, one number, and one special character');
+    } else if (password1 !== password2) {
+        errors.push('Passwords must match');
+    }
     if (email.length < 1 || email.length > 100) errors.push('Email must have less than 100 characters');
 
     const birthDate = new Date(date);

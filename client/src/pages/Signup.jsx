@@ -5,9 +5,10 @@ import { Header } from "../components/header";
 import { Eye, EyeClosed } from 'lucide-react';
 import { Pen } from 'lucide-react';
 
+import '../CSS/styles.css';
+
 export function Signup() {
     const [eye, setEye] = useState(false);
-    const [error, setError] = useState([]);
 
     const [form, setForm] = useState({
         username: '',
@@ -18,30 +19,71 @@ export function Signup() {
         name: '',
     });
 
+    function showToast(messages, type) {
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toast-message");
+
+        // Limpiar el contenido del toast
+        toastMessage.innerHTML = '';  // Limpiar el contenedor de mensajes
+
+        // Añadir cada mensaje de error o éxito en un nuevo <div>
+        if (Array.isArray(messages)) {
+            messages.forEach(msg => {
+                const msgDiv = document.createElement('div');
+                msgDiv.textContent = msg;
+                toastMessage.appendChild(msgDiv);
+            });
+        } else {
+            toastMessage.textContent = messages; // Si solo es un mensaje
+        }
+
+        // Limpiar clases anteriores
+        toast.classList.remove("error", "success", "hidden");
+
+        // Añadir la clase correspondiente
+        toast.classList.add(type);  // Tipo puede ser 'error' o 'success'
+
+        // Mostrar el toast
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+            toast.classList.add("hidden");
+        }, 5000);
+    }
+
+
     function handleSubmit(e) {
         e.preventDefault();
 
         fetch('http://localhost:5000/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(form)
+            body: JSON.stringify(form)  // Asegúrate de que 'form' está definido
         })
-            .then(response => {
+            .then(async response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok')
+                    const errorData = await response.json().catch(() => null);
+                    throw errorData || new Error('Network response was not ok');
                 }
+                showToast(["User registered successfully! 🎉"], 'success')
                 return response.json();
             })
-            .then(data => console.log(data.message))
-            .catch(err => {
+            .then(data =>
+                console.log(data.message),
+            )
+            .catch(async err => {
                 console.error(err.message);
-                if (err.errors) {
-                    setError(err.errors);
-                } else {
-                    setError(["Ocurrió un error en el servidor."]);
+
+                if (err && typeof err === 'object' && err.errors) {
+                    // Convertir los errores a un array si es necesario
+                    const errorMessages = Array.isArray(err.errors) ? err.errors : [err.errors];
+                    showToast(errorMessages, 'error'); // Mostrar errores
                 }
             });
+
     }
+
 
     function handleChange(e) {
 
@@ -91,22 +133,14 @@ export function Signup() {
                                 onChange={handleChange} />
 
 
-                            <button className="bg-gray-500">Sign up</button>
+                            <button className="bg-gray-400 p-2 w-50 rounded-md hover:bg-gray-500 cursor-pointer">Sign up</button>
                         </form>
                     </div>
                 </div>
             </section>
-
-            {
-                error &&
-                <div className="text-red-500 flex justify-center">
-                    <ul>
-                        {error.map((error => {
-                            return <li key={error}>{error}</li>;
-                        }))}
-                    </ul>
-                </div>
-            }
+            <div id="toast" className="hidden">
+                <p id="toast-message"></p>
+            </div>
         </>
     )
 }

@@ -6,6 +6,8 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { configDotenv } from "dotenv";
 
+import { md5 } from 'js-md5';
+
 import { database } from './database/databaseConnect.js';
 import { verifyInputs, addUser } from "./model/users.js";
 
@@ -37,34 +39,40 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/signup', (req, res) => {
-    try {
-        const errors = verifyInputs(form.username, form.email, form.password, form.date, form.name);
-        if (errors.length > 0) {
-            res.status(400).send({ message: "Error en los campos", errors });
-            return;
+
+    const data = req.body;
+
+    console.log(data);
+
+    const name = data.name;
+    const username = data.username;
+    const email = data.email;
+    const password = data.password;
+    const confirmPassword = data.confirmPassword;
+    const birthdate = data.date;
+    const signup_date = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+    const errors = verifyInputs(name, username, password, confirmPassword, email, birthdate, signup_date);
+    if (errors.length > 0) {
+        res.status(400).send({ message: "Error de validación", errors });
+        return;
+    }
+
+
+    const hashedPassword = md5(password);
+
+    console.log(hashedPassword);
+
+    addUser(database, name, username, birthdate, email, hashedPassword, signup_date, (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "There was an error adding the user...", err });
         }
 
-        const data = req.body;
+        res.status(201).json({ message: "User registered successfully", id: result.insertId });
+        console.log("User registered successfully");
+    })
 
-        const name = data.name;
-        const username = data.username;
-        const email = data.email;
-        const password = data.password;
-        const birthdate = data.date;
-        const signup_date = new Date().toISOString().slice(0, 19).replace("T", " ");
-
-        addUser(database, name, username, birthdate, email, password, signup_date, (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ message: "There was an error adding the user...", error: err });
-            }
-
-            res.status(201).json({ message: "User registered successfully", id: result.insertId });
-            console.log("User registered successfully");
-        })
-    } catch (error) {
-        res.status(400).json({ error });
-    }
 })
 
 // ========================
