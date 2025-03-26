@@ -66,20 +66,16 @@ export function Signup() {
                     const errorData = await response.json().catch(() => null);
                     throw errorData || new Error('Network response was not ok');
                 }
-                showToast(["User registered successfully! 🎉"], 'success')
+
                 return response.json();
             })
-            .then(data =>
-                console.log(data.message),
-            )
-            .catch(async err => {
-                console.error(err.message);
-
-                if (err && typeof err === 'object' && err.errors) {
-                    // Convertir los errores a un array si es necesario
-                    const errorMessages = Array.isArray(err.errors) ? err.errors : [err.errors];
-                    showToast(errorMessages, 'error'); // Mostrar errores
-                }
+            .then(data => {
+                console.log(data.message)
+                showToast(data.message, 'success');  // Mostrar mensaje de éxito
+            })
+            .catch(err => {
+                console.log(err.message)
+                showToast(err.message, 'error');  // Mostrar errores
             });
 
     }

@@ -36,3 +36,29 @@ export function verifyInputs(name, username, password1, password2, email, date) 
 
     return errors;
 }
+
+export async function isUserExisting(connection, email) {
+    return new Promise((resolve, reject) => {
+        const query = "SELECT * FROM users WHERE email = ?";
+
+        connection.execute(query, [email], (err, results) => {
+            if (err) return reject(err);
+
+            if (results.length > 0) resolve(true);
+            else resolve(false);
+        });
+    })
+}
+
+export function isUsernameRepeated(connection, username) {
+    return new Promise((resolve, reject) => {
+        const query = "SELECT * FROM users WHERE username = ?";
+
+        connection.execute(query, [username], (err, results) => {
+            if (err) return reject(err);
+
+            if (results.length > 0) resolve(true)
+            else resolve(false);
+        })
+    })
+}
