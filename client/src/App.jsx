@@ -1,11 +1,21 @@
 import { Topnavbar } from './components/Top-Navbar';
 import './styles/topnavbar.css';
 import './styles/global.css';
+import { SocketProvider } from './context/SocketContext';
+import { AuthProvider } from './context/AuthContext';
+
 
 
 function App() {
   return (
-    <Topnavbar />
+    <SocketProvider >
+      <AuthProvider>
+
+        <Topnavbar />
+
+      </AuthProvider>
+    </SocketProvider>
+
   )
 }
 

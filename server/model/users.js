@@ -1,15 +1,14 @@
+import bcrypt from 'bcrypt';
+
 // ADD USER TO THE DATABASE
-export function addUser(connection, name, username, birthdate, email, password, signup_date, callback) {
+export async function addUser(connection, name, username, birthdate, email, password, signup_date) {
     const query = "INSERT INTO users (name, username, birthdate, email, password, signup_date) VALUES (?, ?, ?, ?, ?, ?)";
 
-    connection.query(query, [name, username, birthdate, email, password, signup_date], (err, results) => {
-        if (err) {
-            console.error("There was a problem doing the consult")
-            return callback(err, null);
-        }
+    const [rows] = await connection.execute(query, [name, username, birthdate, email, password, signup_date]);
 
-        return callback(null, results);
-    })
+    if (rows) return true;
+
+    return false;
 }
 
 // VERIFY USER INPUTS BEFORE ADDING TO THE DATABASE
@@ -38,27 +37,64 @@ export function verifyInputs(name, username, password1, password2, email, date) 
 }
 
 export async function isUserExisting(connection, email) {
-    return new Promise((resolve, reject) => {
-        const query = "SELECT * FROM users WHERE email = ?";
+    const query = "SELECT * FROM users WHERE email = ?";
+    const [rows] = await connection.execute(query, [email]);
 
-        connection.execute(query, [email], (err, results) => {
-            if (err) return reject(err);
+    if (rows.length > 0) return true;
 
-            if (results.length > 0) resolve(true);
-            else resolve(false);
-        });
-    })
+    return false;
 }
 
-export function isUsernameRepeated(connection, username) {
-    return new Promise((resolve, reject) => {
-        const query = "SELECT * FROM users WHERE username = ?";
+export async function isUsernameRepeated(connection, username) {
+    const query = "SELECT * FROM users WHERE username = ?";
+    const [rows] = await connection.execute(query, [username]);
 
-        connection.execute(query, [username], (err, results) => {
-            if (err) return reject(err);
+    if (rows.length > 0) return true;
 
-            if (results.length > 0) resolve(true)
-            else resolve(false);
-        })
-    })
+    return false;
+}
+
+export async function login(connection, username, password) {
+    try {
+        if (!username || !password) {
+            throw new Error("Username or password is missing");
+        }
+
+        // Conseguir la contraseña del usuario introducido.
+        const query = "SELECT password FROM users WHERE username = ?";
+        const [rows] = await connection.execute(query, [username]);
+
+        console.log("Query result:", rows);  // <-- Verifica qué devuelve la consulta
+
+        if (rows.length === 0) {
+            console.log("User not found in database");
+            return false;
+        }
+
+        const hashedPassword = rows[0].password;
+
+        console.log("Stored hashed password:", hashedPassword);
+        console.log("Entered password:", password);
+
+        // Comparar contraseñas
+        const match = await bcrypt.compare(password, hashedPassword);
+
+        return match;
+    } catch (error) {
+        console.error("Error during login:", error);
+        throw new Error("Error durante la autenticación: " + error.message);
+    }
+}
+
+
+export async function getInformation(connection, username) {
+    const query = "SELECT * FROM users WHERE username = ?";
+
+    const [rows] = await connection.execute(query, [username]);
+
+    if (rows.length === 0) {
+        return false;
+    }
+
+    return rows[0];
 }

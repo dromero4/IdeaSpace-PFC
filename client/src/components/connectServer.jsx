@@ -1,23 +1,28 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import App from "../App.jsx";
 
-
-
 export function ServerConnection() {
-    const socket = io("http://localhost:5000"); // Conectar al servidor
+    const socketRef = useRef(null); // Usar useRef para almacenar el socket
+
     useEffect(() => {
-        socket.on("connect", () => {
-            console.log(`Conectado al servidor con ID: ${socket.id}`);
+        // Conectar al servidor solo una vez
+        socketRef.current = io("http://localhost:5000");
+
+        // Conectar al servidor
+        socketRef.current.on("connect", () => {
+            console.log(`Conectado al servidor con ID: ${socketRef.current.id}`);
         });
 
-        socket.on("disconnect", () => {
+        socketRef.current.on("disconnect", () => {
             console.log("Desconectado del servidor");
         });
 
+        // Limpiar los eventos cuando el componente se desmonta
         return () => {
-            socket.off("connect");
-            socket.off("disconnect");
+            socketRef.current.off("connect");
+            socketRef.current.off("disconnect");
+            socketRef.current.disconnect(); // Desconectar al desmontar el componente
         };
     }, []);
 

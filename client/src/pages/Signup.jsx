@@ -6,6 +6,7 @@ import { Eye, EyeClosed } from 'lucide-react';
 import { Pen } from 'lucide-react';
 
 import '../CSS/styles.css';
+import { showToast } from "../utils/modal";
 
 export function Signup() {
     const [eye, setEye] = useState(false);
@@ -19,38 +20,7 @@ export function Signup() {
         name: '',
     });
 
-    function showToast(messages, type) {
-        const toast = document.getElementById("toast");
-        const toastMessage = document.getElementById("toast-message");
 
-        // Limpiar el contenido del toast
-        toastMessage.innerHTML = '';  // Limpiar el contenedor de mensajes
-
-        // Añadir cada mensaje de error o éxito en un nuevo <div>
-        if (Array.isArray(messages)) {
-            messages.forEach(msg => {
-                const msgDiv = document.createElement('div');
-                msgDiv.textContent = msg;
-                toastMessage.appendChild(msgDiv);
-            });
-        } else {
-            toastMessage.textContent = messages; // Si solo es un mensaje
-        }
-
-        // Limpiar clases anteriores
-        toast.classList.remove("error", "success", "hidden");
-
-        // Añadir la clase correspondiente
-        toast.classList.add(type);  // Tipo puede ser 'error' o 'success'
-
-        // Mostrar el toast
-        toast.classList.add("show");
-
-        setTimeout(() => {
-            toast.classList.remove("show");
-            toast.classList.add("hidden");
-        }, 5000);
-    }
 
 
     function handleSubmit(e) {
@@ -59,7 +29,7 @@ export function Signup() {
         fetch('http://localhost:5000/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(form)  // Asegúrate de que 'form' está definido
+            body: JSON.stringify(form)
         })
             .then(async response => {
                 if (!response.ok) {
@@ -74,15 +44,15 @@ export function Signup() {
                 showToast(data.message, 'success');  // Mostrar mensaje de éxito
             })
             .catch(err => {
-                console.log(err.message)
-                showToast(err.message, 'error');  // Mostrar errores
+                console.log(err.message);
+                showToast(err.errors, 'error');  // Mostrar errores
+                if (!err.errors) showToast(err.message, 'error');
             });
 
     }
 
 
     function handleChange(e) {
-
         setForm(prevForm => ({
             ...prevForm, [e.target.name]: e.target.value
         }));
