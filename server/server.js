@@ -89,7 +89,7 @@ app.post('/signup', async (req, res) => {
         if (userAdded) return res.status(201).json({ message: "User added successfuly" });
 
     } catch (error) {
-        return res.status(500).json({ message: "There was an error adding the user...", err });
+        return res.status(500).json({ message: "There was an error adding the user...", error });
     }
 
     console.log("Usuario agregado a la base de datos correctamente")
@@ -129,6 +129,7 @@ io.on("connection", (socket) => {
                         );
 
                         socket.emit("message", { type: "login_successful", message: "Login successful", token, logged });
+                        socket.broadcast.emit("message", { type: "logged_user", message: `${username} has logged in` });
                     } else {
                         socket.emit("message", { type: "login_incorrect", message: "Incorrect username or password", logged });
                     }
