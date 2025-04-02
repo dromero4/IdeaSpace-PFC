@@ -39,6 +39,9 @@ app.use(express.json());
 // Esperar a que la conexión se resuelva
 const connection = await createDatabaseConnection();
 
+
+const notifications = [];
+
 app.post('/signup', async (req, res) => {
     const data = req.body;
 
@@ -129,7 +132,10 @@ io.on("connection", (socket) => {
                         );
 
                         socket.emit("message", { type: "login_successful", message: "Login successful", token, logged });
-                        socket.broadcast.emit("message", { type: "logged_user", message: `${username} has logged in` });
+
+                        //notifications.push
+                        notifications.push(`${username} has logged in`);
+                        socket.broadcast.emit("newNotification", { type: "logged_user", notifications });
                     } else {
                         socket.emit("message", { type: "login_incorrect", message: "Incorrect username or password", logged });
                     }

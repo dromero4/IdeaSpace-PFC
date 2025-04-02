@@ -48,3 +48,27 @@
     font-size: 14px;
     line-height: 1.5;
 }
+
+/* Notifications */
+
+.inbox-icon-container {
+    position: relative;
+}
+
+.notification-count {
+    position: absolute;
+    top: 2px;
+    /* Ajusta para que esté más cerca de la esquina superior derecha */
+    right: 2px;
+    /* Ajusta para que esté más cerca de la esquina superior derecha */
+    background-color: red;
+    color: white;
+    font-size: 12px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
