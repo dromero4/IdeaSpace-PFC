@@ -12,6 +12,7 @@ import jwt from 'jsonwebtoken';
 
 import { createDatabaseConnection } from './database/databaseConnect.js';
 import { verifyInputs, addUser, isUserExisting, isUsernameRepeated, login, getInformation } from "./model/users.js";
+import { isAuthenticated } from "./middlewares/isAuthenticated.js";
 
 // Obtener el directorio actual (para módulos ES)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -102,7 +103,7 @@ app.post('/signup', async (req, res) => {
 // ========================
 
 // Evento de conexión de Socket.io
-io.on("connection", (socket) => {
+io.on("connection", (socket, req) => {
     socket.on('message', async data => {
         const type = data.type;
 
@@ -152,6 +153,14 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
     });
 });
+
+//endpoints
+app.get('/articles', isAuthenticated);
+app.get('/news', isAuthenticated);
+app.get('/friends', isAuthenticated);
+app.get('/global-chat', isAuthenticated);
+app.get('/communities', isAuthenticated);
+app.get('/profile', isAuthenticated);
 
 // Iniciar servidor
 const PORT = 5000;
