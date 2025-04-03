@@ -103,8 +103,6 @@ app.post('/signup', async (req, res) => {
 
 // Evento de conexión de Socket.io
 io.on("connection", (socket) => {
-    console.log(`Cliente conectado: ${socket.id}`);
-
     socket.on('message', async data => {
         const type = data.type;
 
@@ -135,7 +133,8 @@ io.on("connection", (socket) => {
 
                         //notifications.push
                         notifications.push(`${username} has logged in`);
-                        socket.broadcast.emit("newNotification", { type: "logged_user", notifications });
+                        socket.broadcast.emit("newNotification", { type: "logged_user", message: notifications[notifications.length - 1] });
+
                     } else {
                         socket.emit("message", { type: "login_incorrect", message: "Incorrect username or password", logged });
                     }
@@ -151,7 +150,6 @@ io.on("connection", (socket) => {
 
 
     socket.on("disconnect", () => {
-        console.log(`Cliente desconectado: ${socket.id}`);
     });
 });
 

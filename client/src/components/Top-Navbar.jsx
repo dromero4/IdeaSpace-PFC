@@ -33,13 +33,17 @@ export function Topnavbar() {
             socket.on("newNotification", (data) => {
                 setNotifications((prevNotifications) => [
                     ...prevNotifications,
-                    ...data.notifications,  // Añadimos las nuevas notificaciones
+                    data.message,
                 ]);
             });
         }
     }, [socket]);
 
     console.log(notifications);
+
+    function showNotifications() {
+        setNotifications([]); //de momento tengo que se borren, mas tarde añadiré mas
+    }
 
     return (
         <>
@@ -64,7 +68,7 @@ export function Topnavbar() {
                         ) : (
                             <div className="absolute right-0 flex flex-row">
                                 <div className="inbox-icon-container">
-                                    <img src="./img/inbox.svg" alt="inbox" width={'60px'} height={'45px'} className="cursor-pointer" />
+                                    <img src="./img/inbox.svg" alt="inbox" width={'60px'} height={'45px'} className="cursor-pointer" onClick={showNotifications} />
                                     {notifications.length > 0 && (
                                         <span className='notification-count'>{notifications.length}</span>
                                     )}
