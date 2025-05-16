@@ -28,11 +28,13 @@ export function Login() {
 
     useEffect(() => {
         if (socket) {
-            socket.on("message", data => {
+            const handleMessage = (data) => {
                 const type = data.type;
 
                 switch (type) {
                     case "login_successful":
+
+
                         console.log("login successful");
                         const token = data.token;
 
@@ -45,16 +47,16 @@ export function Login() {
                         showToast(data.message, "success");
                         setTimeout(() => {
                             navigate('/');
-                        }, "1500");
+                        }, 1500);
                         break;
                     case "login_incorrect":
                         console.log("Login incorrect");
                         showToast(data.message, "error");
                         break;
                 }
-            })
+            };
 
-            socket.on("error", data => {
+            const handleError = (data) => {
                 const type = data.type;
 
                 switch (type) {
@@ -62,11 +64,22 @@ export function Login() {
                         showToast(data.message, "error");
                         break;
                 }
-            })
+            };
+
+            socket.on("message", handleMessage);
+            socket.on("error", handleError);
+
+            return () => {
+                if (socket) {
+                    socket.off("message", handleMessage);
+                    socket.off("error", handleError);
+                }
+            };
         }
 
+        // Dependencias de useEffect
+    }, [socket, cookies, setIsLogged, navigate, showToast]);
 
-    }, [socket])
 
     function handleChange(e) {
         setForm({ ...form, [e.target.name]: e.target.value })

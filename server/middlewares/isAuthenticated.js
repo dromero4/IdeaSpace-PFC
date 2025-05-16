@@ -5,10 +5,12 @@ export function isAuthenticated(req, res, next) {
 
     if (!token) return res.status(403).json({ error: "No token provided" });
 
-    jwt.verify(token.split(" ")[1], process.env.SESSION_SECRET, (err, decoded) => {
-        if (err) return res.status(401).json({ error: "Unauthorized" });
-    })
+    const tokenWithoutBearer = token.split(" ")[1];
 
-    req.user = decoded;
-    next();
+    jwt.verify(tokenWithoutBearer, process.env.SESSION_SECRET, (err, decoded) => {
+        if (err) return false; // el token no es válido, no se puede continuar
+
+        req.user = decoded;
+        next(); // solo continúa si el token es válido
+    });
 }

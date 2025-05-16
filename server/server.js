@@ -13,6 +13,8 @@ import jwt from 'jsonwebtoken';
 import { createDatabaseConnection } from './database/databaseConnect.js';
 import { verifyInputs, addUser, isUserExisting, isUsernameRepeated, login, getInformation } from "./model/users.js";
 import { isAuthenticated } from "./middlewares/isAuthenticated.js";
+import { addLike, removeLike } from "./model/likes.js";
+import { addPublication, getPublications } from "./model/publications.js";
 
 // Obtener el directorio actual (para módulos ES)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -102,10 +104,31 @@ app.post('/signup', async (req, res) => {
 
 // ========================
 
+const likesPerPublication = {};
 // Evento de conexión de Socket.io
 io.on("connection", (socket, req) => {
+    socket.emit("message", {
+        type: "init_likes",
+        likes: likesPerPublication
+    });
+
+    //Eliminar el token de la cookie
+    socket.on("logout", () => {
+        socket.emit("message", {
+            type: "logout",
+            message: "Logout successful"
+        });
+        socket.disconnect();
+        console.log("User disconnected");
+        notifications.push(`${socket.username} has logged out`);
+        socket.broadcast.emit("newNotification", { type: "logged_user", message: notifications[notifications.length - 1] });
+    }
+    );
+
     socket.on('message', async data => {
         const type = data.type;
+
+
 
         switch (type) {
             case "user_login":
@@ -130,6 +153,8 @@ io.on("connection", (socket, req) => {
                             { expiresIn: "1h" }
                         );
 
+                        const username = user.username;
+
                         socket.emit("message", { type: "login_successful", message: "Login successful", token, logged });
 
                         //notifications.push
@@ -145,17 +170,88 @@ io.on("connection", (socket, req) => {
                     socket.emit("error", { type: "server_error", message: "An error occurred during login" });
                 }
                 break;
-            //more cases
+            case "publication":
+                const content = data.content;
+
+                const token = data.token;
+                const user = jwt.verify(token, process.env.SESSION_SECRET);
+
+
+                console.log("Content:", content);
+                console.log("User:", user);
+                console.log("Username:", user.username);
+
+                const date = new Date().toISOString().slice(0, 19).replace("T", " ");
+                const likes = 0;
+                const comments = 0;
+                const username = user.username;
+
+                if (content.length > 0) {
+                    const id = await addPublication(connection, date, username, content, likes, comments);
+
+                    socket.emit("message", {
+                        type: "publication_successful",
+                        message: "Publication successful",
+                        publication: {
+                            id,
+                            date,
+                            username,
+                            content,
+                            likes,
+                            comments,
+                            id
+                        }
+                    });
+
+                }
+                break;
+            case "like":
+                console.log(data);
+
+                const id = data.id;
+
+                if (data.like) {
+                    addLike(connection, data.username, id);
+                } else {
+                    likesPerPublication[id] = Math.max(0, likesPerPublication[id] - 1);
+                    removeLike(connection, data.username, id)
+                }
+
+                socket.broadcast.emit("newNotification", {
+                    type: "like",
+                    message: `${data.username} liked your post`
+                });
+
+                io.emit("message", {
+                    type: "like",
+                    n_likes: likesPerPublication[id],
+                    id
+                });
+
+                break;
+            case "get_all_publications":
+                const publications = await getPublications(connection);
+
+                console.log("Publications:", publications);
+                socket.emit("message", {
+                    type: "all_publications",
+                    publications
+                });
+                break;
         }
+
+
     });
 
 
     socket.on("disconnect", () => {
+
     });
 });
 
 //endpoints
-app.get('/articles', isAuthenticated);
+const articles = []; // Array para almacenar los artículos
+app.get('/articles', isAuthenticated, res => res.status(401).json({ error: "Unauthorized" }));
 app.get('/news', isAuthenticated);
 app.get('/friends', isAuthenticated);
 app.get('/global-chat', isAuthenticated);

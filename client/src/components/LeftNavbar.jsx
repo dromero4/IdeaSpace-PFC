@@ -5,7 +5,7 @@ import { Options } from './navbar-options';
 
 export function LeftNavbar({ setOpen }) {
     return (
-        <aside className={`absolute top-0 h-full w-75 bg-navbar-light ${setOpen ? 'block' : 'hidden'}`}>
+        <aside className={`absolute top-0 h-full w-75 bg-navbar-light z-2 ${setOpen ? 'block' : 'hidden'}`}>
             <div className='flex flex-row justify-between m-6'>
                 <Menu className="w-6 h-6" onClick={() => setOpen(false)} /> {/* Al hacer clic, cierra el menú */}
                 <Link to="/" onClick={() => setOpen(false)}>

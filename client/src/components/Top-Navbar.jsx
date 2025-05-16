@@ -1,5 +1,5 @@
 import { Home, Menu } from 'lucide-react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import { Index } from '../pages/Index.jsx';
 import { LeftNavbar } from './LeftNavbar.jsx';
 import { useEffect, useState } from 'react';
@@ -19,13 +19,23 @@ import { Communities } from '../pages/Communities.jsx';
 import '../CSS/styles.css';
 import { useSocket } from '../context/SocketContext.jsx';
 
+import Cookies from 'universal-cookie';
+import { CreateArticle } from '../pages/CreateArticle.jsx';
+
 
 export function Topnavbar() {
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
 
+    const cookies = new Cookies();
+
     const { isLogged, setIsLogged } = useAuth();
     const socket = useSocket();
+
+    let token = null;
+    if (isLogged) token = cookies.get("access_login_token");
+
+
 
     useEffect(() => {
         if (socket) {
@@ -39,10 +49,17 @@ export function Topnavbar() {
         }
     }, [socket]);
 
-    console.log(notifications);
-
     function showNotifications() {
         setNotifications([]); //de momento tengo que se borren, mas tarde añadiré mas
+    }
+
+    function handleLogout() {
+        //enviar al server
+
+        cookies.remove("access_login_token");
+        setIsLogged(false);
+        socket.emit("logout", { token });
+        window.location.href = "/login";
     }
 
     return (
@@ -73,7 +90,7 @@ export function Topnavbar() {
                                         <span className='notification-count'>{notifications.length}</span>
                                     )}
                                 </div>
-                                <Link to="/" onClick={() => setIsLogged(false)}>
+                                <Link to="/" onClick={handleLogout}>
                                     <Button text={"Log out"} />
                                 </Link>
                             </div>
@@ -106,7 +123,14 @@ export function Topnavbar() {
 
                     <Route path="/global-chat" element={<ProtectedPage><GChat /></ProtectedPage>} />
 
-                    <Route path="/profile" element={<ProtectedPage><Profile /></ProtectedPage>} />
+                    <Route path="/profile" element={
+                        <ProtectedPage>
+
+                            <Profile>
+
+                            </Profile>
+                        </ProtectedPage>}
+                    />
 
                     <Route path="/global-chat" element={<ProtectedPage><GChat /></ProtectedPage>} />
 
@@ -115,6 +139,7 @@ export function Topnavbar() {
                     <Route path="/login" element={<Login />} />
 
                     <Route path="/signup" element={<Signup />} />
+                    <Route path="/create-article" element={<ProtectedPage><CreateArticle /></ProtectedPage>} />
 
 
 
