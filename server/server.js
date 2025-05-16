@@ -212,15 +212,16 @@ io.on("connection", (socket, req) => {
 
                 if (data.like) {
                     addLike(connection, data.username, id);
+                    likesPerPublication[id] = (likesPerPublication[id] || 0) + 1;
                 } else {
                     likesPerPublication[id] = Math.max(0, likesPerPublication[id] - 1);
                     removeLike(connection, data.username, id)
                 }
 
-                socket.broadcast.emit("newNotification", {
-                    type: "like",
-                    message: `${data.username} liked your post`
-                });
+                // socket.broadcast.emit("newNotification", {
+                //     type: "like",
+                //     message: `${data.username} liked your post`
+                // });
 
                 io.emit("message", {
                     type: "like",
